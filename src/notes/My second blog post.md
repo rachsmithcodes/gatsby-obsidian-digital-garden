@@ -8,7 +8,7 @@ excerpt: I've written a pretty great post.
 ---
 
 
-Here is a link [[My first blog post]]
+Here is a link [[My first blog post|to a blog post]]
 
 
 asfasfassaf

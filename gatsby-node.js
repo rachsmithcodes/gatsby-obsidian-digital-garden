@@ -5,6 +5,7 @@
  */
 
 const path = require('path');
+const slugify = require('slugify');
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage } = actions;
@@ -59,11 +60,65 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 
   notesResult.data.allMdx.nodes.forEach((node) => {
     createPage({
-      path: `/${node.frontmatter.slug}`,
+      path: `/${node.slug}`,
       component: noteTemplate,
       context: {
-        slug: node.frontmatter.slug,
+        slug: node.slug,
       },
     });
   });
+};
+
+exports.onCreateNode = ({ node, getNode, actions }) => {
+  const { createNodeField } = actions;
+
+  if (node.internal.type === `Mdx`) {
+    const fileNameSplit = node.fileAbsolutePath.split('/');
+    const fileName = fileNameSplit[fileNameSplit.length - 1];
+    const slug = slugify(fileName, {
+      lower: true,
+    });
+
+    createNodeField({
+      name: 'id',
+      node,
+      value: node.id,
+    });
+
+    createNodeField({
+      name: 'title',
+      node,
+      value: node.frontmatter.title,
+    });
+
+    createNodeField({
+      name: 'excerpt',
+      node,
+      value: node.frontmatter.excerpt,
+    });
+
+    createNodeField({
+      name: 'slug',
+      node,
+      value: slug,
+    });
+
+    createNodeField({
+      name: 'added',
+      node,
+      value: node.frontmatter.added || '',
+    });
+
+    createNodeField({
+      name: 'updated',
+      node,
+      value: node.frontmatter.updated || '',
+    });
+
+    createNodeField({
+      name: 'tags',
+      node,
+      value: node.frontmatter.tags || [],
+    });
+  }
 };

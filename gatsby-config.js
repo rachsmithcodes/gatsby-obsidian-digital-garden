@@ -1,9 +1,11 @@
+var feedConfig = require('./feed-config.js');
+
 module.exports = {
   siteMetadata: {
     title: `Digital garden`,
     description: `A Gatsby digital garden, designed to work with the content from an Obsidian vault`,
-    author: `@rachsmithcodes`,
-    siteUrl: `https://rachsmith.com`,
+    author: `@mygithubhandle`,
+    siteUrl: `https://mywebsiteurl.com`,
   },
   plugins: [
     `gatsby-plugin-react-helmet`,
@@ -55,7 +57,7 @@ module.exports = {
       },
     },
     'gatsby-plugin-postcss',
-
+    feedConfig,
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,

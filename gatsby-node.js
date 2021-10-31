@@ -7,6 +7,8 @@
 const path = require('path');
 const slugify = require('slugify');
 
+const references = {};
+
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage } = actions;
 
@@ -45,9 +47,11 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     {
       allMdx {
         nodes {
-          frontmatter {
+          fields {
             slug
+            title
           }
+          rawBody
         }
       }
     }
@@ -58,12 +62,30 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     return;
   }
 
+  // build links
+  notesResult.data.allMdx.nodes.forEach((note) => {
+    const { slug, title } = note.fields;
+    const { rawBody } = note;
+
+    const wikiLinkMatches = rawBody.match(/((?<=\[\[).*?(?=\]\]))/g) ?? [];
+    wikiLinkMatches.forEach((wikiLink) => {
+      const wikiLinkSlug = slugify(wikiLink.split('|')[0], { lower: true });
+      if (references[wikiLinkSlug]) {
+        if (!references[wikiLinkSlug].some((ref) => ref.slug === slug))
+          references[wikiLinkSlug].push({ slug, title });
+      } else {
+        references[wikiLinkSlug] = [{ slug, title }];
+      }
+    });
+  });
+
   notesResult.data.allMdx.nodes.forEach((node) => {
     createPage({
-      path: `/${node.slug}`,
+      path: `/${node.fields.slug}`,
       component: noteTemplate,
       context: {
-        slug: node.slug,
+        slug: node.fields.slug,
+        references: references[node.fields.slug] || [],
       },
     });
   });
@@ -74,7 +96,7 @@ exports.onCreateNode = ({ node, getNode, actions }) => {
 
   if (node.internal.type === `Mdx`) {
     const fileNameSplit = node.fileAbsolutePath.split('/');
-    const fileName = fileNameSplit[fileNameSplit.length - 1];
+    const fileName = fileNameSplit[fileNameSplit.length - 1].split('.')[0];
     const slug = slugify(fileName, {
       lower: true,
     });
